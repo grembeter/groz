@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+revision='2793a657ab7a22487d21c1b020957806f8ae8383'
+abbrev=$(echo "${revision}" | cut -c 1-7)
+
+if [ -f "$(dirname $0)/../staging/mxsldr-${abbrev}/mxsldr" ]; then
+    echo ":: 'mxsldr' file exists, copying it to build directory"
+    mkdir -p "$(dirname $0)/../build"
+    cp -v "$(dirname $0)/../staging/mxsldr-${abbrev}/mxsldr" "$(dirname $0)/../build"
+    echo ":: if you want to rebuild it from scratch,"
+    echo "::    remove $(dirname $0)/../staging/mxsldr-${abbrev}"
+
+    exit 0
+fi
+
+set -o errexit
+set -o xtrace
+
+mkdir -p "$(dirname $0)/build" "$(dirname $0)/../staging"
+
+wget -O- 'http://git.denx.de/?p=mxsldr.git;a=snapshot;h='"${revision}"';sf=tgz' | tar zxf - -C "$(dirname $0)/../staging"
+make -C "$(dirname $0)/../staging/mxsldr-${abbrev}" CC=$(which gcc)
+cp -v "$(dirname $0)/../staging/mxsldr-${abbrev}/mxsldr" "$(dirname $0)/../build"
