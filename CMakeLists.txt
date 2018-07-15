@@ -21,15 +21,32 @@ set(CMAKE_C_LINK_FLAGS "-A ${TARGET_ARCH} --no-gc-sections -static --stats --pri
 set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -Map ${CMAKE_PROJECT_NAME}.map -T ${CMAKE_SOURCE_DIR}/mxslink.lds")
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <OBJECTS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> -o <TARGET> <LINK_LIBRARIES>")
 
+execute_process(
+  COMMAND ${CMAKE_C_COMPILER} -print-libgcc-file-name
+  OUTPUT_VARIABLE TARGET_LIBGCC
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+execute_process(
+  COMMAND ${CMAKE_C_COMPILER} -print-file-name=libc.a
+  OUTPUT_VARIABLE TARGET_LIBC
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
 add_custom_command(
   OUTPUT "${CMAKE_BINARY_DIR}/mkimage"
   COMMAND "${CMAKE_SOURCE_DIR}/scripts/build_mkimage"
   )
 
+include_directories("sources/include")
+
+add_subdirectory("sources/hurd")
+add_subdirectory("sources/diag")
+
 add_custom_target(uboot_mkimage ALL DEPENDS "${CMAKE_BINARY_DIR}/mkimage")
 add_executable(${CMAKE_PROJECT_NAME} "sources/entry.S" "sources/startup.c")
+target_link_libraries(${CMAKE_PROJECT_NAME} diag hurd ${TARGET_LIBC} ${TARGET_LIBGCC})
 add_dependencies(${CMAKE_PROJECT_NAME} uboot_mkimage)
-
 
 add_custom_command(
   TARGET ${CMAKE_PROJECT_NAME}

@@ -36,7 +36,10 @@ SECTIONS {
         } > OCRAM
 
         .bss : {
+                . = ALIGN(4);
+                __bss_start = .;
                 *(.bss*)
+                __bss_end = .;
         } > OCRAM
 
         .cmd_tab : {
