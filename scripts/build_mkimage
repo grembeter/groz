@@ -1,14 +1,13 @@
 #!/usr/bin/env sh
 
 revision='89c5c976195342344f4caffce016c2de7abb8802'
-abbrev=$(echo "${revision}" | cut -c 1-7)
 
-if [ -f "$(dirname $0)/../staging/u-boot-${abbrev}/tools/mkimage" ]; then
+if [ -f "$(dirname $0)/../staging/u-boot-${revision}/tools/mkimage" ]; then
     echo ":: 'mkimage' file exists, copying it to build directory"
     mkdir -p "$(dirname $0)/../build"
-    cp -v "$(dirname $0)/../staging/u-boot-${abbrev}/tools/mkimage" "$(dirname $0)/../build"
+    cp -v "$(dirname $0)/../staging/u-boot-${revision}/tools/mkimage" "$(dirname $0)/../build"
     echo ":: if you want to rebuild it from scratch,"
-    echo "::    remove $(dirname $0)/../staging/u-boot-${abbrev}"
+    echo "::    remove $(dirname $0)/../staging/u-boot-${revision}"
 
     exit 0
 fi
@@ -18,7 +17,7 @@ set -o xtrace
 
 mkdir -p "$(dirname $0)/../build" "$(dirname $0)/../staging"
 
-wget -O- 'http://git.denx.de/?p=u-boot.git;a=snapshot;h='"${revision}"';sf=tgz' | tar zxf - -C "$(dirname $0)/../staging"
-make -C "$(dirname $0)/../staging/u-boot-${abbrev}" mx28evk_defconfig CC=$(which gcc)
-make -C "$(dirname $0)/../staging/u-boot-${abbrev}" tools-only CC=$(which gcc)
-cp -v "$(dirname $0)/../staging/u-boot-${abbrev}/tools/mkimage" "$(dirname $0)/../build"
+wget -O- 'https://gitlab.denx.de/u-boot/u-boot/-/archive/'${revision}'/u-boot-'${revision}'.tar.gz' | tar zxf - -C "$(dirname $0)/../staging"
+make -C "$(dirname $0)/../staging/u-boot-${revision}" mx28evk_defconfig CC=$(which gcc)
+make -C "$(dirname $0)/../staging/u-boot-${revision}" tools-only CC=$(which gcc)
+cp -v "$(dirname $0)/../staging/u-boot-${revision}/tools/mkimage" "$(dirname $0)/../build"
