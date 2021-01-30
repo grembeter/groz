@@ -1,10 +1,10 @@
 /**
- * @file stream.c
+ * @file cmd.c
  */
 
 #include <groz.h>
+//#include <lib/cmd.h>
 #include <lib/stream.h>
-#include <lib/uartdbg.h>
 
 struct stream_ctx {
     int initialized;
