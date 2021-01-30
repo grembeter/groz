@@ -3,140 +3,66 @@
  */
 
 #include <groz.h>
-//#include <lib/cmd.h>
+#include <lib/cmd.h>
 #include <lib/stream.h>
 
-struct stream_ctx {
-    int initialized;
-    struct uartdbg_ctx *uartdbg;
-};
+static char cmdline[256];
 
-static struct stream_ctx stream_ctx;
-
-static inline void _put_string(const char *str)
+static void read_input(char *buf, size_t buf_size)
 {
-    if (str == NULL) {
-        str = "(null)";
-    }
+    size_t pos;
 
-    while (*str != '\0') {
-        dbg_putchar(*str++);
-    }
-}
-
-static inline void _put_integer(int integer)
-{
-    int input;
-    char out[32];
-    int i = 32;
-
-    out[--i] = '\0';
-
-    if (integer < 0) {
-        input = -integer;
-    } else {
-        input = integer;
-    }
-
-    do {
-        out[--i] = (char)('0' + input % 10);
-        input /= 10;
-    } while (input > 0);
-
-    if (integer < 0) {
-        out[--i] = '-';
-    }
-
-    _put_string(&out[i]);
-}
-
-static inline char _hexchar(unsigned char halfbyte)
-{
-    char off = '0';
-
-    if (halfbyte > 9) {
-        off = 'a' - 10;
-    }
-
-    return (char)(halfbyte + off);
-}
-
-static inline void _put_hexadecimal(unsigned int hex)
-{
-    char out[32];
-    int i = 32;
-
-    out[--i] = '\0';
-
-    do {
-        out[--i] = _hexchar(hex & 0x0f);
-        hex >>= 4;
-    } while (hex > 0);
-
-    _put_string(&out[i]);
-}
-
-void dbg_putchar(char ch)
-{
-    uartdbg_tx(stream_ctx.uartdbg, (ch));
-}
-
-uint32_t dbg_getchar()
-{
-    return uartdbg_rx(stream_ctx.uartdbg);
-}
-
-void dbg(const char *fmt, ...)
-{
-    if (fmt == NULL) {
+    if ((buf == NULL) || (buf_size == 0)) {
         return;
     }
 
-    const uint32_t *varg = (uint32_t *)&fmt + 1;
+    pos = 0;
 
-    while (*fmt != '\0') {
-        if (*fmt == '%') {
-            char spec = *(fmt + 1);
+    while (1) {
+        char c = (char)dbg_getchar();
 
-            if (spec == '\0') {
-                dbg_putchar(*fmt);
-                break;
+        if ((c == 0x04) || (c == '\n')) {
+            buf[pos] = '\0';
+            break;
+        } else if ((c >= 0x20) && (c < 0x7f)) {
+            dbg_putchar(c);
+
+            if (c == ' ') {
+                c = '\0';
             }
 
-            if (spec == '%') {
-                dbg_putchar('%');
-            } else if (spec == 'c') {
-                dbg_putchar((unsigned char)(*varg++));
-            } else if (spec == 's') {
-                _put_string((const char *)(*varg++));
-            } else if (spec == 'd') {
-                _put_integer((int)(*varg++));
-            } else if (spec == 'x') {
-                _put_hexadecimal((unsigned int)(*varg++));
-            } else {
-                dbg_putchar(*fmt);
-                dbg_putchar(spec);
+            if ((pos + 1) < buf_size) {
+                buf[pos++] = c;
             }
-
-            ++fmt;
-        } else {
-            dbg_putchar(*fmt);
         }
-
-        ++fmt;
     }
+
+    dbg_putchar('\n');
 }
 
-int stream_init()
+void cmd_init(void)
 {
-    if (stream_ctx.initialized == 1) {
-        return 0;
+    stream_init();
+}
+
+void cmd_loop(void)
+{
+    const char prompt[] = " oz :: ";
+
+    dbg("\n"
+        "   __ _ _ __ ___ ____\n"
+        "  / _` | '__/ _ \\_  /\n"
+        " | (_| | | | (_) / / \n"
+        "  \\__, |_|  \\___/___|\n"
+        "   __/ |             \n"
+        "  |___/      v0.1    \n"
+        "\n");
+
+    dbg(prompt);
+
+    while (1) {
+        read_input(cmdline, sizeof(cmdline));
+        dbg("run %s\n", cmdline);
+        dbg(prompt);
     }
-
-    /* memset(&stream_ctx, 0x00, sizeof(stream_ctx)); */
-
-    stream_ctx.uartdbg = uartdbg_init(NULL);
-    stream_ctx.initialized = 1;
-
-    return 0;
 }

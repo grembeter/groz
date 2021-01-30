@@ -7,7 +7,7 @@
 /**
  * @brief Initialize default stream.
  */
-int stream_init(void);
+void stream_init(void);
 
 /**
  * @brief Output message to the debug stream.

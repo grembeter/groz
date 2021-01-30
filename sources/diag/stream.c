@@ -127,16 +127,14 @@ void dbg(const char *fmt, ...)
     }
 }
 
-int stream_init()
+void stream_init()
 {
     if (stream_ctx.initialized == 1) {
-        return 0;
+        return;
     }
 
     /* memset(&stream_ctx, 0x00, sizeof(stream_ctx)); */
 
     stream_ctx.uartdbg = uartdbg_init(NULL);
     stream_ctx.initialized = 1;
-
-    return 0;
 }
