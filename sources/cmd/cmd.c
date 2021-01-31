@@ -8,21 +8,21 @@
 
 static char cmdline[256];
 
-static void read_input(char *buf, size_t buf_size)
+static size_t read_input(char *input, size_t input_size)
 {
-    size_t pos;
+    size_t pos = 0;
 
-    if ((buf == NULL) || (buf_size == 0)) {
-        return;
+    if ((input == NULL) || (input_size < 2)) {
+        return 0;
     }
 
-    pos = 0;
+    input[pos++] = '\0';
 
     while (1) {
         char c = (char)dbg_getchar();
 
         if ((c == 0x04) || (c == '\n')) {
-            buf[pos] = '\0';
+            input[pos] = '\0';
             break;
         } else if ((c >= 0x20) && (c < 0x7f)) {
             dbg_putchar(c);
@@ -31,13 +31,51 @@ static void read_input(char *buf, size_t buf_size)
                 c = '\0';
             }
 
-            if ((pos + 1) < buf_size) {
-                buf[pos++] = c;
+            if ((pos + 1) < input_size) {
+                input[pos++] = c;
             }
         }
     }
 
     dbg_putchar('\n');
+
+    return pos;
+}
+
+int parse_input(char *input, size_t len, char *argv[], size_t argv_size);
+int exec_input(int argc, char *argv[]);
+
+int parse_input(char *input, size_t len, char *argv[], size_t argv_size)
+{
+    int argc = 0;
+
+    if ((len < 2) || (input == NULL) || (*input++ != '\0')) {
+        return 0;
+    }
+
+    while (--len > 0) {
+        if ((*(input - 1) == '\0') && (*input != '\0')) {
+            argv[argc++] = input;
+        }
+
+        ++input;
+    }
+
+    return argc;
+}
+
+int exec_input(int argc, char *argv[])
+{
+    int ret = 0;
+    int i;
+
+    for (i = 0; i < argc; ++i) {
+        dbg("%d: %s\n", i, argv[i]);
+    }
+
+    dbg("ret=%d\n", ret);
+
+    return ret;
 }
 
 void cmd_init(void)
@@ -48,6 +86,10 @@ void cmd_init(void)
 void cmd_loop(void)
 {
     const char prompt[] = " oz :: ";
+    size_t cmdlen;
+    char *argv[16];
+    int argc;
+    int ret;
 
     dbg("\n"
         "   __ _ _ __ ___ ____\n"
@@ -61,8 +103,12 @@ void cmd_loop(void)
     dbg(prompt);
 
     while (1) {
-        read_input(cmdline, sizeof(cmdline));
-        dbg("run %s\n", cmdline);
+        cmdlen = read_input(cmdline, sizeof(cmdline));
+        argc = parse_input(cmdline, cmdlen, argv, sizeof(argv));
+        ret = exec_input(argc, argv);
+        if (ret != 0) {
+            dbg("%d ", ret);
+        }
         dbg(prompt);
     }
 }
