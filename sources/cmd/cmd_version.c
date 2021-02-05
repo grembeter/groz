@@ -1,5 +1,5 @@
 /**
- * @file cmd.c
+ * @file cmd_version.c
  */
 
 #include <groz.h>

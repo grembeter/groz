@@ -68,8 +68,7 @@ int parse_input(char *input, size_t len, char *argv[], size_t argv_size)
 int exec_input(int argc, char *argv[])
 {
     struct cmd_table *cmd;
-    int ret = 0;
-    int i;
+    int ret = 1;
 
     if (argc == 0) {
         return 0;
@@ -78,16 +77,7 @@ int exec_input(int argc, char *argv[])
     cmd = &__cmd_tab_start;
 
     while (cmd < &__cmd_tab_end) {
-        ret = 0;
-        i = 0;
-        do {
-            if (argv[0][i] != cmd->name[i]) {
-                ret = 1;
-                break;
-            }
-        } while (argv[0][i++] != '\0');
-
-        if (ret == 0) {
+        if (0 == std_strcmp(argv[0], cmd->name, sizeof(cmd->name))) {
             ret = cmd->exec(cmd, argc, argv);
             break;
         }
@@ -128,6 +118,8 @@ void cmd_loop(void)
         ret = exec_input(argc, argv);
         if (ret != 0) {
             dbg("%d ", ret);
+        } else {
+            dbg("  ");
         }
         dbg(prompt);
     }

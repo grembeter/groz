@@ -22,3 +22,4 @@ struct cmd_table {
         .exec = cmd_##_name                                                                     \
     }
 
+
