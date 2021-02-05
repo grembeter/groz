@@ -1,16 +1,24 @@
 /**
- * @file cmd_version.c
+ * @file cmd.c
  */
 
 #include <groz.h>
+#include <version.h>
 #include <lib/cmd.h>
 #include <lib/stream.h>
 #include "cmd.h"
 
+int cmd_version(struct cmd_table *cmd, int argc, char **argv);
+
+#define CMD_USAGE  \
+    "version\n" \
+    " print firmware version"
+
 int cmd_version(struct cmd_table *cmd, int argc, char **argv)
 {
-    dbg("usage: %s\n", cmd->usage);
+    dbg("%s\n", VERSION);
+
     return 0;
 }
 
-OZ_CMDT(version, "version", cmd_version);
+OZ_CMDT(version, CMD_USAGE);

@@ -11,7 +11,7 @@ int cmd_help(struct cmd_table *cmd, int argc, char **argv);
 
 #define CMD_USAGE  \
     "help [cmd]\n" \
-    " give a short usage message\n"
+    " give a short usage message"
 
 int cmd_help(struct cmd_table *cmd, int argc, char **argv)
 {
