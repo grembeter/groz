@@ -46,7 +46,7 @@ add_subdirectory("sources/cmd")
 
 add_custom_target(uboot_mkimage ALL DEPENDS "${CMAKE_BINARY_DIR}/mkimage")
 add_executable(${CMAKE_PROJECT_NAME} "sources/entry.S" "sources/startup.c")
-target_link_libraries(${CMAKE_PROJECT_NAME} cmd diag hurd ${TARGET_LIBC} ${TARGET_LIBGCC})
+target_link_libraries(${CMAKE_PROJECT_NAME} --whole-archive cmd --no-whole-archive diag hurd ${TARGET_LIBC} ${TARGET_LIBGCC})
 add_dependencies(${CMAKE_PROJECT_NAME} uboot_mkimage)
 
 add_custom_command(
