@@ -7,27 +7,24 @@
 #include <mmr/uartdbg.h>
 
 struct uartdbg_ctx {
-    int initialized;
+    enum MODULE_INIT_STATE initialized;
     volatile struct uartdbg_mmr *mmr;
 };
 
 static struct uartdbg_ctx uartdbg_ctx;
 
-void *uartdbg_init(struct hurd_uartdbg *init)
+/* ********** ********** **********
+ * local functions
+ */
+
+static inline int is_initialized(struct uartdbg_ctx *ctx)
 {
-    struct uartdbg_ctx *ctx = &uartdbg_ctx;
-
-    volatile struct uartdbg_mmr *mmr = (volatile struct uartdbg_mmr *)MMR_UARTDBG_BASE;
-
-    mmr->cr |= (0x1 << 9) | (0x1 << 8);
-    mmr->cr |= 0x1;
-
-    /* save context */
-    ctx->mmr = mmr;
-    ctx->initialized = 1;
-
-    return ctx;
+    return ctx->initialized == INITIALIZED;
 }
+
+/* ********** ********** **********
+ * global functions, see <lib/uartdbg.h>
+ */
 
 void uartdbg_tx(void *handle, uint32_t data)
 {
@@ -51,4 +48,27 @@ uint32_t uartdbg_rx(void *handle)
     }
 
     return mmr->dr & 0xff;
+}
+
+/* ********** ********** **********
+ * init function
+ */
+void *uartdbg_init(struct hurd_uartdbg *init)
+{
+    struct uartdbg_ctx *ctx = &uartdbg_ctx;
+
+    if (is_initialized(ctx)) {
+        return ctx;
+    }
+
+    volatile struct uartdbg_mmr *mmr = (volatile struct uartdbg_mmr *)MMR_UARTDBG_BASE;
+
+    mmr->cr |= (0x1 << 9) | (0x1 << 8);
+    mmr->cr |= 0x1;
+
+    /* save context */
+    ctx->mmr = mmr;
+    ctx->initialized = INITIALIZED;
+
+    return ctx;
 }

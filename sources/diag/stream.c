@@ -7,15 +7,19 @@
 #include <lib/uartdbg.h>
 
 struct stream_ctx {
-    int initialized;
+    enum MODULE_INIT_STATE initialized;
     struct uartdbg_ctx *uartdbg;
 };
 
 static struct stream_ctx stream_ctx;
 
-static inline void dbg_putchar(char ch)
+/* ********** ********** **********
+ * local functions
+ */
+
+static inline int is_initialized(struct stream_ctx *ctx)
 {
-    uartdbg_tx(stream_ctx.uartdbg, (ch));
+    return ctx->initialized == INITIALIZED;
 }
 
 static inline void _put_string(const char *str)
@@ -81,6 +85,20 @@ static inline void _put_hexadecimal(unsigned int hex)
     _put_string(&out[i]);
 }
 
+/* ********** ********** **********
+ * global functions, see <lib/stream.h>
+ */
+
+void dbg_putchar(char ch)
+{
+    uartdbg_tx(stream_ctx.uartdbg, (ch));
+}
+
+uint32_t dbg_getchar()
+{
+    return uartdbg_rx(stream_ctx.uartdbg);
+}
+
 void dbg(const char *fmt, ...)
 {
     if (fmt == NULL) {
@@ -122,9 +140,20 @@ void dbg(const char *fmt, ...)
     }
 }
 
+/* ********** ********** **********
+ * init function
+ */
 int stream_init()
 {
+    if (is_initialized(&stream_ctx)) {
+        return 0;
+    }
+
     stream_ctx.uartdbg = uartdbg_init(NULL);
 
-    return 0;
+    if (stream_ctx.uartdbg != NULL) {
+        stream_ctx.initialized = INITIALIZED;
+    }
+
+    return is_initialized(&stream_ctx);
 }
