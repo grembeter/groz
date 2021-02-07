@@ -115,10 +115,6 @@ void dbg(const char *fmt, ...)
 
             ++fmt;
         } else {
-            if (*fmt == '\n') {
-                dbg_putchar('\r');
-            }
-
             dbg_putchar(*fmt);
         }
 
