@@ -45,7 +45,7 @@ SECTIONS {
         .cmd_tab : {
                 . = ALIGN(4);
                 __cmd_tab_start = .;
-                *(.cmd_tab)
+                KEEP(*(SORT(.cmd_tab*)))
                 __cmd_tab_end = .;
         } > OCRAM
 
